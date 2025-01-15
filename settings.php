@@ -18,7 +18,7 @@
  * Webcourse admin settings and defaults.
  *
  * @package   local_webcourse
- * @copyright 2024 Maxwell Souza <maxwell.hygor01@gmail.com>
+ * @copyright 2025 Maxwell Souza <maxwell.hygor01@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

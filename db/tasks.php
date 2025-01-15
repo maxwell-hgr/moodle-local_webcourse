@@ -15,7 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Define the version of webcourse.
+ * Scheduled tasks for the Webcourse plugin.
+ *
+ * This file defines the tasks that are scheduled to run via Moodle's cron.
+ * These tasks include creating courses and enrolling users based on external data.
  *
  * @package   local_webcourse
  * @copyright 2025 Maxwell Souza <maxwell.hygor01@gmail.com>
@@ -24,8 +27,15 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'local_webcourse';
-$plugin->version = 2024121200;
-$plugin->requires = 2021051700; // Requires Moodle 3.11 or higher.
-$plugin->maturity = MATURITY_STABLE;
-$plugin->release = '1.0';
+$tasks = array(
+    array(
+        'classname' => 'local_webcourse\task\create_course_enrol_users_task',
+        'blocking' => 0,
+        'minute' => '0',
+        'hour' => '0',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+        'enabled' => 0,
+    ),
+);

@@ -18,16 +18,13 @@
  * Create a course and enroll users with external course and users data.
  *
  * @package   local_webcourse
- * @copyright 2024 Maxwell Souza <maxwell.hygor01@gmail.com>
+ * @copyright 2025 Maxwell Souza <maxwell.hygor01@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 require_once(__DIR__ . '/../../config.php');
 require_once('lib.php');
 
 require_login();
-
-use local_webcourse\form\fetch_form;
 
 $context = context_system::instance();
 require_capability('moodle/site:config', $context);
@@ -37,107 +34,173 @@ $PAGE->set_context($context);
 $PAGE->set_title(get_string('pluginname', 'local_webcourse'));
 $PAGE->set_heading(get_string('pluginname', 'local_webcourse'));
 
-$mform = new fetch_form();
-
 $endpoint = get_config('local_webcourse', 'endpoint');
 
-if ($mform->is_cancelled()) {
-    redirect(new moodle_url('/admin/settings.php', ['section' => 'courses']));
-} else if ($data = $mform->get_data()) {
-    $courseidform = clean_param($data->courseid, PARAM_INT);
-    $url = "{$endpoint}{$courseidform}";
+$response = file_get_contents($endpoint);
+$coursesdata = json_decode($response, true);
 
-    $response = file_get_contents($url);
-    $coursedata = json_decode($response, true);
+list($new_courses, $existing_courses, $existing_courses_json) = local_webcourse_filter_existing_course($coursesdata);
 
-    if (isset($coursedata['name']) && isset($coursedata['participants'])) {
-        $coursename = clean_param($coursedata['name'], PARAM_TEXT);
-        $participants = array_map(fn($p) => clean_param($p, PARAM_USERNAME), $coursedata['participants']);
+if (optional_param('downloadcsv', 0, PARAM_INT) === 1) {
+    $csvdata = optional_param('data', '', PARAM_RAW);
+    $coursename = required_param('coursename', PARAM_TEXT);
+    $usersdata = json_decode(urldecode($csvdata), true);
 
-        echo $OUTPUT->header();
-        echo html_writer::tag('h2', get_string('course_name', 'local_webcourse') . ': ' . $coursename);
-        echo html_writer::tag('p', get_string('participants_count', 'local_webcourse') . ': ' . count($participants));
-
-        $confirmurl = new moodle_url('/local/webcourse/index.php', [
-            'confirm' => 1,
-            'coursename' => $coursename,
-            'courseid' => $courseidform,
-            'participants' => json_encode($participants),
-        ]);
-        echo html_writer::tag('p', html_writer::link($confirmurl, get_string('confirmcreate', 'local_webcourse'),
-            ['class' => 'btn btn-primary']));
-        echo $OUTPUT->footer();
-        die();
-    } else {
-        echo $OUTPUT->header();
-        echo html_writer::tag('p', get_string('no_course_found', 'local_webcourse'));
-        echo $OUTPUT->footer();
-        die();
-    }
+    local_webcourse_generate_csv($coursename, $usersdata);
+    exit();
 }
 
 if (optional_param('confirm', 0, PARAM_INT) === 1) {
-    $coursename = clean_param(required_param('coursename', PARAM_TEXT), PARAM_TEXT);
-    $courseid = clean_param(required_param('courseid', PARAM_INT), PARAM_INT);
-    $participants = json_decode(optional_param('participants', '[]', PARAM_RAW));
+    $notfoundusers = [];
 
-    $participants = array_map(fn($p) => clean_param($p, PARAM_USERNAME), $participants);
+    if(!empty($new_courses)){
+        foreach ($new_courses as $course) {
+            $coursename = clean_param($course['shortname'], PARAM_TEXT);
 
-    try {
-        $categoryid = get_config('local_webcourse', 'categoryid');
-        list($newcourse, $notfoundusers) = local_webcourse_create_course(
-            $coursename,
-            $coursename,
-            $categoryid,
-            $participants,
-            'Curso criado automaticamente',
-            'topics'
-        );
+            $participants = [];
+            foreach ($course['participants'] as $participant) {
+                $user_data = ['username' => clean_param($participant['username'], PARAM_USERNAME)];
+                if (isset($participant['roleid'])) {
+                    $user_data['roleid'] = clean_param($participant['roleid'], PARAM_TEXT);
+                }
+                $participants[] = $user_data;
+            }
 
-        echo $OUTPUT->header();
-        echo html_writer::tag('h2', get_string('coursecreated', 'local_webcourse') . ': ' . $newcourse->fullname);
+            try {
+                $notfound = local_webcourse_create_course(
+                    $coursename,
+                    $coursename,
+                    $participants,
+                    'Curso criado automaticamente',
+                    'topics'
+                );
 
-        if (!empty($notfoundusers)) {
-            $countnotfound = count($notfoundusers);
-            echo html_writer::tag('p', get_string('usersnotfound', 'local_webcourse') . ": {$countnotfound}");
+                $notfoundusers = merge_unique_notfoundusers($notfoundusers, $notfound);
 
-            $csvdata = urlencode(json_encode($notfoundusers));
-            $csvurl = new moodle_url('/local/webcourse/index.php', [
-                'downloadcsv' => 1,
-                'coursename' => clean_param($newcourse->fullname, PARAM_TEXT),
-                'data' => $csvdata,
-            ]);
-
-            echo html_writer::tag(
-                'p',
-                html_writer::link($csvurl, get_string('downloadcsv', 'local_webcourse'), ['class' => 'btn btn-secondary'])
-            );
+            } catch (Exception $e) {
+                echo $OUTPUT->header();
+                echo html_writer::tag('p', get_string('coursecreationerror', 'local_webcourse') . ': ' . $e->getMessage());
+                echo $OUTPUT->footer();
+                die();
+            }
         }
-
-        echo $OUTPUT->footer();
-    } catch (Exception $e) {
-        echo $OUTPUT->header();
-        echo html_writer::tag('p', get_string('coursecreationerror', 'local_webcourse') . ': ' . $e->getMessage());
-        echo $OUTPUT->footer();
     }
 
-    die();
-}
 
-if (optional_param('downloadcsv', 0, PARAM_INT) === 1) {
-    $coursename = clean_param(required_param('coursename', PARAM_TEXT), PARAM_TEXT);
-    $notfoundusers = json_decode(urldecode(required_param('data', PARAM_RAW)), true);
+    if(!empty($existing_courses)){
+        foreach ($existing_courses as $course) {
+            $coursename = clean_param($course->shortname, PARAM_TEXT);
+
+            $json_course = null;
+            foreach ($existing_courses_json as $existing_course) {
+                if ($existing_course['shortname'] === $coursename) {
+                    $json_course = $existing_course;
+                    break;
+                }
+            }
+
+            $participants = [];
+            foreach ($json_course['participants'] as $participant) {
+                $user_data = ['username' => clean_param($participant['username'], PARAM_USERNAME)];
+                if (isset($participant['roleid'])) {
+                    $user_data['roleid'] = clean_param($participant['roleid'], PARAM_TEXT);
+                }
+                $participants[] = $user_data;
+            }
+
+            try {
+                $notfound = check_and_enrol($course, $participants);
+                $notfoundusers = merge_unique_notfoundusers($notfoundusers, $notfound);
+
+            } catch (Exception $e) {
+                echo $OUTPUT->header();
+                echo html_writer::tag('p', get_string('coursecreationerror', 'local_webcourse') . ': ' . $e->getMessage());
+                echo $OUTPUT->footer();
+                die();
+            }
+        }
+    }
+
+
+
+    echo $OUTPUT->header();
+    echo html_writer::tag('h2', get_string('coursecreated', 'local_webcourse'));
 
     if (!empty($notfoundusers)) {
-        local_webcourse_generate_csv($notfoundusers, $coursename);
-    } else {
-        redirect(new moodle_url('/local/webcourse/index.php'),
-            get_string('nocsvdata', 'local_webcourse'), null, \core\output\notification::NOTIFY_WARNING);
+        $countnotfound = count($notfoundusers);
+        echo html_writer::tag('p', get_string('usersnotfound', 'local_webcourse') . ": {$countnotfound}");
+
+        $csvdata = urlencode(json_encode($notfoundusers));
+        $csvurl = new moodle_url('/local/webcourse/index.php', [
+            'downloadcsv' => 1,
+            'coursename' => 'Users Not Found',
+            'data' => $csvdata,
+        ]);
+
+        echo html_writer::tag(
+            'p',
+            html_writer::link($csvurl, get_string('downloadcsv', 'local_webcourse'), ['class' => 'btn btn-secondary'])
+        );
     }
 
+    echo $OUTPUT->footer();
     die();
 }
 
 echo $OUTPUT->header();
-$mform->display();
+
+
+
+if (!empty($existing_courses_json) || !empty($new_courses)) {
+    $courseshtml = '';
+
+    if (!empty($existing_courses_json)) {
+        $courseshtml .= html_writer::tag('h2', get_string('update_courses', 'local_webcourse') . ': ' . count($existing_courses_json));
+
+        $courseshtml .= '<ul>';
+        foreach ($existing_courses_json as $course) {
+            $coursename = clean_param($course['name'], PARAM_TEXT);
+
+            $participants = [];
+            foreach ($course['participants'] as $participant) {
+                $username = clean_param($participant['username'], PARAM_USERNAME);
+                $participants[] = $username;
+            }
+
+            $courseshtml .= "<li>" . " JSON - " . get_string('course_name', 'local_webcourse') . ": {$coursename}, " .
+                get_string('participants_count', 'local_webcourse') . ": " . count($participants) . "</li>";
+        }
+        $courseshtml .= '</ul>';
+        $courseshtml .= '<br>';
+    }
+
+    if (!empty($new_courses)) {
+        $courseshtml .= html_writer::tag('h2', get_string('found_courses', 'local_webcourse') . ': ' . count($new_courses));
+
+        $courseshtml .= '<ul>';
+        foreach ($new_courses as $course) {
+            $coursename = clean_param($course['name'], PARAM_TEXT);
+
+            $participants = [];
+            foreach ($course['participants'] as $participant) {
+                $username = clean_param($participant['username'], PARAM_USERNAME);
+                $participants[] = $username;
+            }
+
+            $courseshtml .= "<li>" . get_string('course_name', 'local_webcourse') . ": {$coursename}, " .
+                get_string('participants_count', 'local_webcourse') . ": " . count($participants) . "</li>";
+        }
+        $courseshtml .= '</ul>';
+        $courseshtml .= '<br>';
+    }
+
+    echo $courseshtml;
+
+    $confirmurl = new moodle_url('/local/webcourse/index.php', ['confirm' => 1, 'courses' => json_encode($coursesdata)]);
+    echo html_writer::tag('p', html_writer::link($confirmurl, get_string('confirmcreate', 'local_webcourse'), ['class' => 'btn btn-primary']));
+
+} else {
+    echo html_writer::tag('p', get_string('no_courses_found', 'local_webcourse'));
+}
+
 echo $OUTPUT->footer();

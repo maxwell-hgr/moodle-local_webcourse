@@ -21,7 +21,7 @@
  * if you like, and it can span multiple lines.
  *
  * @package   local_webcourse
- * @copyright 2024 Maxwell Souza (https://github.com/maxwell-hgr/moodle-local_webcourse/issues)
+ * @copyright 2025 Maxwell Souza (https://github.com/maxwell-hgr/moodle-local_webcourse/issues)
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -35,16 +35,17 @@ $string['downloadcsv'] = 'Downlaod CSV with not found users';
 $string['endpoint'] = 'API Endpoint';
 $string['endpoint_desc'] = 'Base URL for fetching course data.';
 $string['enter_course_id'] = 'Enter Course ID';
-$string['no_course_found'] = 'No course found with the given ID.';
+$string['found_courses'] = 'Found courses';
+$string['no_courses_found'] = 'No course found with the given ID.';
 $string['nocsvdata'] = 'No csv data found';
 $string['participants_count'] = 'Participants Count';
 $string['pluginname'] = 'WEBSERVICE Integration - COURSE';
 $string['privacy:metadata'] = 'The Webcourse plugin does not store any personal data.';
 $string['roleid'] = 'Role ID';
 $string['roleid_desc'] = 'Default role ID to assign to enrolled users.';
-$string['submit'] = 'Submit';
 $string['user_not_found'] = 'User not found';
 $string['username_label'] = 'Username: {$a}';
 $string['usersnotfound'] = 'Users Not Found';
+$string['update_courses'] = 'Courses to be updated';
 
 
