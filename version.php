@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_webcourse';
-$plugin->version = 2025011500;
+$plugin->version = 2025011501;
 $plugin->requires = 2021051700;
 $plugin->maturity = MATURITY_STABLE;
 $plugin->release = '2.0';
