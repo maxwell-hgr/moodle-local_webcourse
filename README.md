@@ -1,7 +1,7 @@
 # Moodle Plugin: Local WEBCOURSE
 ## Description
 This plugin integrates Moodle with an external microservice to automatically create courses and enroll users. It validates users, generates a CSV file for non-existent users, and automates the course creation process. Additionally, the plugin now includes a scheduled task within Moodle, which runs periodically via cron, to ensure that the courses in Moodle are always in sync with the courses available from the external endpoint.
-The plugin mirrors its courses with an external endpoint, which is very useful for institutions that use an external academic system outside of Moodle.
+**The plugin mirrors its courses with an external endpoint, which is very useful for institutions that use an external academic system outside of Moodle.**
 
 ## Installation
 1. Copy the plugin folder to moodle_root/local/.
