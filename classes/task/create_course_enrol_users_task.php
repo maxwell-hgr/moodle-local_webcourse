@@ -18,6 +18,16 @@
 /**
  * Task for creating courses and enrolling users in Moodle based on external API data.
  *
+ * @package   local_webcourse
+ * @copyright 2025 Maxwell Souza <maxwell.hygor01@gmail.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+namespace local_webcourse\task;
+
+/**
+ * Task for creating courses and enrolling users in Moodle based on external API data.
+ *
  * This task fetches data from an external API to create courses and enroll users.
  * It filters out existing courses and only creates new ones, enrolling users as participants.
  * It is scheduled to run automatically via Moodle's cron.
@@ -26,18 +36,14 @@
  * @copyright 2025 Maxwell Souza <maxwell.hygor01@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class create_course_enrol_users_task extends \core\task\scheduled_task {
 
-namespace local_webcourse\task;
-
-class create_course_enrol_users_task extends \core\task\scheduled_task
-{
     /**
      * Definition of the task name for display in the Cron.
      *
      * @return string The name of the task.
      */
-    public function get_name()
-    {
+    public function get_name() {
         return get_string('pluginname', 'local_webcourse');
     }
 
@@ -51,8 +57,7 @@ class create_course_enrol_users_task extends \core\task\scheduled_task
      *
      * @return void
      */
-    public function execute()
-    {
+    public function execute() {
         global $CFG;
 
         require_once($CFG->dirroot . '/local/webcourse/lib.php');
@@ -103,9 +108,9 @@ class create_course_enrol_users_task extends \core\task\scheduled_task
                 $coursename = clean_param($course->shortname, PARAM_TEXT);
 
                 $jsoncourse = null;
-                foreach ($existingcoursesjson as $existing_course) {
-                    if ($existing_course['shortname'] === $coursename) {
-                        $jsoncourse = $existing_course;
+                foreach ($existingcoursesjson as $existingcourse) {
+                    if ($existingcourse['shortname'] === $coursename) {
+                        $jsoncourse = $existingcourse;
                         break;
                     }
                 }

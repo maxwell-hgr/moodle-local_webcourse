@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -155,7 +154,8 @@ if (!empty($existingcoursesjson) || !empty($newcourses)) {
     $courseshtml = '';
 
     if (!empty($existingcoursesjson)) {
-        $courseshtml .= html_writer::tag('h2', get_string('update_courses', 'local_webcourse') . ': ' . count($existingcoursesjson));
+        $courseshtml .= html_writer::tag('h2', get_string('update_courses', 'local_webcourse') . ': '
+            . count($existingcoursesjson));
 
         $courseshtml .= '<ul>';
         foreach ($existingcoursesjson as $course) {
@@ -197,7 +197,8 @@ if (!empty($existingcoursesjson) || !empty($newcourses)) {
     echo $courseshtml;
 
     $confirmurl = new moodle_url('/local/webcourse/index.php', ['confirm' => 1, 'courses' => json_encode($coursesdata)]);
-    echo html_writer::tag('p', html_writer::link($confirmurl, get_string('confirmcreate', 'local_webcourse'), ['class' => 'btn btn-primary']));
+    echo html_writer::tag('p', html_writer::link($confirmurl, get_string('confirmcreate', 'local_webcourse'),
+        ['class' => 'btn btn-primary']));
 } else {
     echo html_writer::tag('p', get_string('no_courses_found', 'local_webcourse'));
 }
