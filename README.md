@@ -38,7 +38,7 @@ This plugin integrates Moodle with an external microservice to automatically cre
                 { "username": "00000000074" },
                 { "username": "00000000076" },
                 { "username": "00000000077" },
-                { "username": "00000000078", "roleid": "professor" },
+                { "username": "00000000078", "roleid": "teacher" },
                 { "username": "00000000069" }
             ]
         },
@@ -46,7 +46,7 @@ This plugin integrates Moodle with an external microservice to automatically cre
             "shortname": "unique_field2",
             "name": "Exemple name - Physics Course",
             "participants": [
-                { "username": "00000000023", "roleid": "professor" },
+                { "username": "00000000023", "roleid": "teacher" },
                 { "username": "00000000076" },
                 { "username": "00000000087"},
                 { "username": "00000000078"}

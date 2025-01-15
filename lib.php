@@ -75,7 +75,7 @@ function local_webcourse_create_course($fullname, $shortname, $participants = []
 /**
  * Convert a role identifier string to the corresponding Moodle role ID.
  *
- * This function converts user-friendly role strings (like 'student', 'professor', etc.)
+ * This function converts user-friendly role strings (like 'student', 'teacher', etc.)
  * into the corresponding Moodle role IDs used in the system.
  *
  * @param string $roleidstring Role identifier string (e.g., 'student', 'teacher').
@@ -84,7 +84,7 @@ function local_webcourse_create_course($fullname, $shortname, $participants = []
  * @throws moodle_exception If the string is not recognized.
  */
 function get_roleid_from_string($roleidstring) {
-    if ($roleidstring === 'professor') {
+    if ($roleidstring === 'teacher') {
         return 3;
     }
     return get_config('local_webcourse', 'roleid');
