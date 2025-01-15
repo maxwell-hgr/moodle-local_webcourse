@@ -22,11 +22,49 @@ This plugin integrates Moodle with an external microservice to automatically cre
 
 ## Usage
 1. Set the correct endpoint for your API request.
-2. Access the plugin page in Moodle: /local/webcourse/index.php.
-3. Input the course ID from the external microservice.
-4. Confirm course creation.
-5. Download the CSV report of missing users, if applicable.
-6. The cron task will run periodically to sync courses from the microservice to Moodle.
+2. Access the plugin page in Moodle: **Site administration -> Courses -> WEBSERVICE Integration - COURSE**
+3. Confirm courses creation.
+4. Download the CSV report of missing users, if applicable.
+5. The cron task will run periodically to sync courses from the microservice to Moodle.
+
+## Json Format
+```json
+{
+    "courses": [
+        {
+            "shortname": "unique_field1",
+            "name": "Exemple name - Geography Course",
+            "participants": [
+                { "username": "00000000074" },
+                { "username": "00000000076" },
+                { "username": "00000000077" },
+                { "username": "00000000078", "roleid": "professor" },
+                { "username": "00000000069" }
+            ]
+        },
+        {
+            "shortname": "unique_field2",
+            "name": "Exemple name - Physics Course",
+            "participants": [
+                { "username": "00000000023", "roleid": "professor" },
+                { "username": "00000000076" },
+                { "username": "00000000087"},
+                { "username": "00000000078"}
+            ]
+        },
+        {
+            "shortname": "unique_field3",
+            "name": "Exemple name - Math Course",
+            "participants": [
+                { "username": "00000000023", "roleid": "professor" },
+                { "username": "00000000076" },
+                { "username": "00000000087"},
+                { "username": "00000000078"}
+            ]
+        }
+    ]
+}
+```
 
 ## Error Handling
  - Displays errors for invalid inputs or missing API responses.
