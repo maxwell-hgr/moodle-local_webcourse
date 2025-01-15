@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Define the version of webcourse.
+ * Define the version of Webcourse.
  *
  * @package   local_webcourse
  * @copyright 2025 Maxwell Souza <maxwell.hygor01@gmail.com>
@@ -26,6 +26,6 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_webcourse';
 $plugin->version = 2024121200;
-$plugin->requires = 2021051700; // Requires Moodle 3.11 or higher.
+$plugin->requires = 2021051700;
 $plugin->maturity = MATURITY_STABLE;
 $plugin->release = '2.0';
