@@ -42,5 +42,5 @@ $string['roleid'] = 'Role ID';
 $string['roleid_desc'] = 'Default role ID to assign to enrolled users.';
 $string['user_not_found'] = 'User not found';
 $string['username_label'] = 'Username: {$a}';
-$string['usersnotfound'] = 'Users Not Found';
 $string['update_courses'] = 'Courses to be updated';
+$string['usersnotfound'] = 'Users Not Found';
