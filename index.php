@@ -196,7 +196,7 @@ if (!empty($existingcoursesjson) || !empty($newcourses)) {
 
     echo $courseshtml;
 
-    $confirmurl = new moodle_url('/local/webcourse/index.php', ['confirm' => 1, 'courses' => json_encode($coursesdata)]);
+    $confirmurl = new moodle_url('/local/webcourse/index.php', ['confirm' => 1]);
     echo html_writer::tag('p', html_writer::link($confirmurl, get_string('confirmcreate', 'local_webcourse'),
         ['class' => 'btn btn-primary']));
 } else {
