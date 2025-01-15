@@ -1,4 +1,5 @@
 <?php
+
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -24,7 +25,6 @@
 
 namespace local_webcourse\privacy;
 
-
 /**
  * Privacy Subsystem for local_webcourse.
  *
@@ -32,8 +32,8 @@ namespace local_webcourse\privacy;
  * @copyright 2024 Maxwell Souza <maxwell.hygor01@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class provider implements \core_privacy\local\metadata\null_provider {
-
+class provider implements \core_privacy\local\metadata\null_provider
+{
     /**
      * Returns the reason associated with the privacy metadata.
      *
@@ -43,7 +43,8 @@ class provider implements \core_privacy\local\metadata\null_provider {
      *
      * @return string A string representing the privacy metadata reason, in this case 'privacy:metadata'.
      */
-    public static function get_reason(): string {
+    public static function get_reason(): string
+    {
         return 'privacy:metadata';
     }
 }

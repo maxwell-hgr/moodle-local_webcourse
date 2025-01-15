@@ -1,4 +1,5 @@
 <?php
+
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -46,10 +47,10 @@ require_once($CFG->dirroot . '/enrol/manual/locallib.php');
  * @return array List of users who could not be found or enrolled.
  * @throws moodle_exception Throws an exception if there is an issue with course creation or enrollment.
  */
-function local_webcourse_create_course($fullname, $shortname, $participants = [], $summary = '', $format = 'topics') {
+function local_webcourse_create_course($fullname, $shortname, $participants = [], $summary = '', $format = 'topics')
+{
     global $DB;
 
-    $default_roleid = get_config('local_webcourse', 'roleid');
     $categoryid = get_config('local_webcourse', 'categoryid');
 
     $category = \core_course_category::get($categoryid, IGNORE_MISSING);
@@ -79,13 +80,14 @@ function local_webcourse_create_course($fullname, $shortname, $participants = []
  * This function converts user-friendly role strings (like 'student', 'professor', etc.)
  * into the corresponding Moodle role IDs used in the system.
  *
- * @param string $roleid_string Role identifier string (e.g., 'student', 'teacher').
+ * @param string $roleidstring Role identifier string (e.g., 'student', 'teacher').
  *
  * @return int Corresponding role ID for Moodle system.
  * @throws moodle_exception If the string is not recognized.
  */
-function get_roleid_from_string($roleid_string) {
-    if ($roleid_string === 'professor') {
+function get_roleid_from_string($roleidstring)
+{
+    if ($roleidstring === 'professor') {
         return 3;
     }
     return get_config('local_webcourse', 'roleid');
@@ -103,7 +105,8 @@ function get_roleid_from_string($roleid_string) {
  *
  * @return void The function will output a CSV directly.
  */
-function local_webcourse_generate_csv($coursename, $usersdata) {
+function local_webcourse_generate_csv($coursename, $usersdata)
+{
     header('Content-Type: text/csv');
     header('Content-Disposition: attachment; filename="' . $coursename . '_notfound.csv"');
 
@@ -132,28 +135,28 @@ function local_webcourse_generate_csv($coursename, $usersdata) {
  *     - `existing_courses` (array): List of already existing courses.
  *     - `existing_courses_json` (array): Original data for the existing courses in JSON format.
  */
-function local_webcourse_filter_existing_course($coursesdata) {
+function local_webcourse_filter_existing_course($coursesdata)
+{
     global $DB;
 
-    $new_courses = [];
-    $existing_courses = [];
-    $existing_courses_json = [];
+    $newcourses = [];
+    $existingcourses = [];
+    $existingcoursesjson = [];
 
     foreach ($coursesdata as $course) {
         $shortname = clean_param($course['shortname'], PARAM_TEXT);
 
-        // Check if course already exists by shortname
         if ($DB->record_exists('course', ['shortname' => $shortname])) {
-            $existing_course = $DB->get_record('course', ['shortname' => $shortname]);
+            $existingcourse = $DB->get_record('course', ['shortname' => $shortname]);
 
-            $existing_courses[] = $existing_course;
-            $existing_courses_json[] = $course;
+            $existingcourses[] = $existingcourse;
+            $existingcoursesjson[] = $course;
         } else {
-            $new_courses[] = $course;
+            $newcourses[] = $course;
         }
     }
 
-    return [$new_courses, $existing_courses, $existing_courses_json];
+    return [$newcourses, $existingcourses, $existingcoursesjson];
 }
 
 
@@ -168,10 +171,11 @@ function local_webcourse_filter_existing_course($coursesdata) {
  *
  * @return bool True if all participants are enrolled, false otherwise.
  */
-function check_and_enrol($course, $participants = []) {
+function check_and_enrol($course, $participants = [])
+{
     global $DB;
 
-    $new_participants = [];
+    $newparticipants = [];
     $notfoundusers = [];
 
     if (empty($participants)) {
@@ -179,19 +183,19 @@ function check_and_enrol($course, $participants = []) {
     }
 
     $context = context_course::instance($course->id);
-    $enrolled_users = get_enrolled_users($context);
+    $enrolledusers = get_enrolled_users($context);
 
-    $enrolled_usernames = array_values(array_map(function($user) {
+    $enrolledusernames = array_values(array_map(function ($user) {
         return $user->username;
-    }, $enrolled_users));
+    }, $enrolledusers));
 
     foreach ($participants as $participant) {
-        if (!in_array($participant['username'], $enrolled_usernames)) {
-            $new_participants[] = $participant;
+        if (!in_array($participant['username'], $enrolledusernames)) {
+            $newparticipants[] = $participant;
         }
     }
 
-    return enrol_participants_in_course($course, $new_participants);
+    return enrol_participants_in_course($course, $newparticipants);
 }
 
 
@@ -207,7 +211,8 @@ function check_and_enrol($course, $participants = []) {
  *
  * @return array List of users who could not be found or enrolled.
  */
-function enrol_participants_in_course($course, $participants) {
+function enrol_participants_in_course($course, $participants)
+{
     global $DB;
 
     $manualenrol = enrol_get_plugin('manual');
@@ -253,18 +258,19 @@ function enrol_participants_in_course($course, $participants) {
 /**
  * Merge unique users into the $notfoundusers array.
  *
- * @param array $existing_users The array of existing not found users.
- * @param array $new_users The array of new users to be added.
+ * @param array $existingusers The array of existing not found users.
+ * @param array $newusers The array of new users to be added.
  * @return array The updated array with unique users.
  */
-function merge_unique_notfoundusers(array $existing_users, array $new_users): array {
-    $unique_users = $existing_users;
+function merge_unique_notfoundusers(array $existingusers, array $newusers): array
+{
+    $uniqueusers = $existingusers;
 
-    foreach ($new_users as $new_user) {
+    foreach ($newusers as $new_user) {
         $exists = false;
 
         if (isset($new_user['username'])) {
-            foreach ($unique_users as $existing_user) {
+            foreach ($uniqueusers as $existing_user) {
                 if (isset($existing_user['username'])) {
                     if ($existing_user['username'] === $new_user['username']) {
                         $exists = true;
@@ -275,9 +281,9 @@ function merge_unique_notfoundusers(array $existing_users, array $new_users): ar
         }
 
         if (!$exists) {
-            $unique_users[] = $new_user;
+            $uniqueusers[] = $new_user;
         }
     }
 
-    return $unique_users;
+    return $uniqueusers;
 }

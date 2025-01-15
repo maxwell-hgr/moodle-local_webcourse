@@ -1,4 +1,5 @@
 <?php
+
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -21,6 +22,7 @@
  * @copyright 2025 Maxwell Souza <maxwell.hygor01@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 require_once(__DIR__ . '/../../config.php');
 require_once('lib.php');
 
@@ -39,7 +41,7 @@ $endpoint = get_config('local_webcourse', 'endpoint');
 $response = file_get_contents($endpoint);
 $coursesdata = json_decode($response, true);
 
-list($new_courses, $existing_courses, $existing_courses_json) = local_webcourse_filter_existing_course($coursesdata);
+list($newcourses, $existingcourses, $existingcoursesjson) = local_webcourse_filter_existing_course($coursesdata);
 
 if (optional_param('downloadcsv', 0, PARAM_INT) === 1) {
     $csvdata = optional_param('data', '', PARAM_RAW);
@@ -53,17 +55,17 @@ if (optional_param('downloadcsv', 0, PARAM_INT) === 1) {
 if (optional_param('confirm', 0, PARAM_INT) === 1) {
     $notfoundusers = [];
 
-    if(!empty($new_courses)){
-        foreach ($new_courses as $course) {
+    if (!empty($newcourses)) {
+        foreach ($newcourses as $course) {
             $coursename = clean_param($course['shortname'], PARAM_TEXT);
 
             $participants = [];
             foreach ($course['participants'] as $participant) {
-                $user_data = ['username' => clean_param($participant['username'], PARAM_USERNAME)];
+                $userdata = ['username' => clean_param($participant['username'], PARAM_USERNAME)];
                 if (isset($participant['roleid'])) {
-                    $user_data['roleid'] = clean_param($participant['roleid'], PARAM_TEXT);
+                    $userdata['roleid'] = clean_param($participant['roleid'], PARAM_TEXT);
                 }
-                $participants[] = $user_data;
+                $participants[] = $userdata;
             }
 
             try {
@@ -76,7 +78,6 @@ if (optional_param('confirm', 0, PARAM_INT) === 1) {
                 );
 
                 $notfoundusers = merge_unique_notfoundusers($notfoundusers, $notfound);
-
             } catch (Exception $e) {
                 echo $OUTPUT->header();
                 echo html_writer::tag('p', get_string('coursecreationerror', 'local_webcourse') . ': ' . $e->getMessage());
@@ -87,31 +88,30 @@ if (optional_param('confirm', 0, PARAM_INT) === 1) {
     }
 
 
-    if(!empty($existing_courses)){
-        foreach ($existing_courses as $course) {
+    if (!empty($existingcourses)) {
+        foreach ($existingcourses as $course) {
             $coursename = clean_param($course->shortname, PARAM_TEXT);
 
-            $json_course = null;
-            foreach ($existing_courses_json as $existing_course) {
-                if ($existing_course['shortname'] === $coursename) {
-                    $json_course = $existing_course;
+            $jsoncourse = null;
+            foreach ($existingcoursesjson as $existingcourse) {
+                if ($existingcourse['shortname'] === $coursename) {
+                    $jsoncourse = $existingcourse;
                     break;
                 }
             }
 
             $participants = [];
-            foreach ($json_course['participants'] as $participant) {
-                $user_data = ['username' => clean_param($participant['username'], PARAM_USERNAME)];
+            foreach ($jsoncourse['participants'] as $participant) {
+                $userdata = ['username' => clean_param($participant['username'], PARAM_USERNAME)];
                 if (isset($participant['roleid'])) {
-                    $user_data['roleid'] = clean_param($participant['roleid'], PARAM_TEXT);
+                    $userdata['roleid'] = clean_param($participant['roleid'], PARAM_TEXT);
                 }
-                $participants[] = $user_data;
+                $participants[] = $userdata;
             }
 
             try {
                 $notfound = check_and_enrol($course, $participants);
                 $notfoundusers = merge_unique_notfoundusers($notfoundusers, $notfound);
-
             } catch (Exception $e) {
                 echo $OUTPUT->header();
                 echo html_writer::tag('p', get_string('coursecreationerror', 'local_webcourse') . ': ' . $e->getMessage());
@@ -151,14 +151,14 @@ echo $OUTPUT->header();
 
 
 
-if (!empty($existing_courses_json) || !empty($new_courses)) {
+if (!empty($existingcoursesjson) || !empty($newcourses)) {
     $courseshtml = '';
 
-    if (!empty($existing_courses_json)) {
-        $courseshtml .= html_writer::tag('h2', get_string('update_courses', 'local_webcourse') . ': ' . count($existing_courses_json));
+    if (!empty($existingcoursesjson)) {
+        $courseshtml .= html_writer::tag('h2', get_string('update_courses', 'local_webcourse') . ': ' . count($existingcoursesjson));
 
         $courseshtml .= '<ul>';
-        foreach ($existing_courses_json as $course) {
+        foreach ($existingcoursesjson as $course) {
             $coursename = clean_param($course['name'], PARAM_TEXT);
 
             $participants = [];
@@ -174,11 +174,11 @@ if (!empty($existing_courses_json) || !empty($new_courses)) {
         $courseshtml .= '<br>';
     }
 
-    if (!empty($new_courses)) {
-        $courseshtml .= html_writer::tag('h2', get_string('found_courses', 'local_webcourse') . ': ' . count($new_courses));
+    if (!empty($newcourses)) {
+        $courseshtml .= html_writer::tag('h2', get_string('found_courses', 'local_webcourse') . ': ' . count($newcourses));
 
         $courseshtml .= '<ul>';
-        foreach ($new_courses as $course) {
+        foreach ($newcourses as $course) {
             $coursename = clean_param($course['name'], PARAM_TEXT);
 
             $participants = [];
@@ -198,7 +198,6 @@ if (!empty($existing_courses_json) || !empty($new_courses)) {
 
     $confirmurl = new moodle_url('/local/webcourse/index.php', ['confirm' => 1, 'courses' => json_encode($coursesdata)]);
     echo html_writer::tag('p', html_writer::link($confirmurl, get_string('confirmcreate', 'local_webcourse'), ['class' => 'btn btn-primary']));
-
 } else {
     echo html_writer::tag('p', get_string('no_courses_found', 'local_webcourse'));
 }

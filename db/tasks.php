@@ -1,4 +1,5 @@
 <?php
+
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -27,8 +28,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$tasks = array(
-    array(
+$tasks = [
+    [
         'classname' => 'local_webcourse\task\create_course_enrol_users_task',
         'blocking' => 0,
         'minute' => '0',
@@ -37,5 +38,5 @@ $tasks = array(
         'month' => '*',
         'dayofweek' => '*',
         'enabled' => 0,
-    ),
-);
+    ],
+];

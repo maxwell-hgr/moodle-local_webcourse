@@ -1,8 +1,19 @@
 <?php
 
-namespace local_webcourse\task;
-
-defined('MOODLE_INTERNAL') || die();
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * Task for creating courses and enrolling users in Moodle based on external API data.
@@ -15,14 +26,18 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright 2025 Maxwell Souza <maxwell.hygor01@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class create_course_enrol_users_task extends \core\task\scheduled_task {
 
+namespace local_webcourse\task;
+
+class create_course_enrol_users_task extends \core\task\scheduled_task
+{
     /**
      * Definition of the task name for display in the Cron.
      *
      * @return string The name of the task.
      */
-    public function get_name() {
+    public function get_name()
+    {
         return get_string('pluginname', 'local_webcourse');
     }
 
@@ -36,7 +51,8 @@ class create_course_enrol_users_task extends \core\task\scheduled_task {
      *
      * @return void
      */
-    public function execute() {
+    public function execute()
+    {
         global $CFG;
 
         require_once($CFG->dirroot . '/local/webcourse/lib.php');
@@ -46,21 +62,21 @@ class create_course_enrol_users_task extends \core\task\scheduled_task {
         $response = file_get_contents($endpoint);
         $coursesdata = json_decode($response, true);
 
-        list($new_courses, $existing_courses, $existing_courses_json) = local_webcourse_filter_existing_course($coursesdata);
+        list($newcourses, $existingcourses, $existingcoursesjson) = local_webcourse_filter_existing_course($coursesdata);
 
         $notfoundusers = [];
 
-        if(!empty($new_courses)){
-            foreach ($new_courses as $course) {
+        if (!empty($newcourses)) {
+            foreach ($newcourses as $course) {
                 $coursename = clean_param($course['shortname'], PARAM_TEXT);
 
                 $participants = [];
                 foreach ($course['participants'] as $participant) {
-                    $user_data = ['username' => clean_param($participant['username'], PARAM_USERNAME)];
+                    $userdata = ['username' => clean_param($participant['username'], PARAM_USERNAME)];
                     if (isset($participant['roleid'])) {
-                        $user_data['roleid'] = clean_param($participant['roleid'], PARAM_TEXT);
+                        $userdata['roleid'] = clean_param($participant['roleid'], PARAM_TEXT);
                     }
-                    $participants[] = $user_data;
+                    $participants[] = $userdata;
                 }
 
                 try {
@@ -73,7 +89,6 @@ class create_course_enrol_users_task extends \core\task\scheduled_task {
                     );
 
                     $notfoundusers = merge_unique_notfoundusers($notfoundusers, $notfound);
-
                 } catch (Exception $e) {
                     echo $OUTPUT->header();
                     echo html_writer::tag('p', get_string('coursecreationerror', 'local_webcourse') . ': ' . $e->getMessage());
@@ -83,31 +98,30 @@ class create_course_enrol_users_task extends \core\task\scheduled_task {
             }
         }
 
-        if(!empty($existing_courses)){
-            foreach ($existing_courses as $course) {
+        if (!empty($existingcourses)) {
+            foreach ($existingcourses as $course) {
                 $coursename = clean_param($course->shortname, PARAM_TEXT);
 
-                $json_course = null;
-                foreach ($existing_courses_json as $existing_course) {
+                $jsoncourse = null;
+                foreach ($existingcoursesjson as $existing_course) {
                     if ($existing_course['shortname'] === $coursename) {
-                        $json_course = $existing_course;
+                        $jsoncourse = $existing_course;
                         break;
                     }
                 }
 
                 $participants = [];
-                foreach ($json_course['participants'] as $participant) {
-                    $user_data = ['username' => clean_param($participant['username'], PARAM_USERNAME)];
+                foreach ($jsoncourse['participants'] as $participant) {
+                    $userdata = ['username' => clean_param($participant['username'], PARAM_USERNAME)];
                     if (isset($participant['roleid'])) {
-                        $user_data['roleid'] = clean_param($participant['roleid'], PARAM_TEXT);
+                        $userdata['roleid'] = clean_param($participant['roleid'], PARAM_TEXT);
                     }
-                    $participants[] = $user_data;
+                    $participants[] = $userdata;
                 }
 
                 try {
                     $notfound = check_and_enrol($course, $participants);
                     $notfoundusers = merge_unique_notfoundusers($notfoundusers, $notfound);
-
                 } catch (Exception $e) {
                     echo $OUTPUT->header();
                     echo html_writer::tag('p', get_string('coursecreationerror', 'local_webcourse') . ': ' . $e->getMessage());

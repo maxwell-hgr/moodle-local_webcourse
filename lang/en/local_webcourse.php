@@ -1,4 +1,5 @@
 <?php
+
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -47,5 +48,3 @@ $string['user_not_found'] = 'User not found';
 $string['username_label'] = 'Username: {$a}';
 $string['usersnotfound'] = 'Users Not Found';
 $string['update_courses'] = 'Courses to be updated';
-
-
