@@ -24,6 +24,7 @@
 
 require_once(__DIR__ . '/../../config.php');
 require_once('lib.php');
+require_once($CFG->libdir . '/filelib.php');
 
 require_login();
 
@@ -37,7 +38,15 @@ $PAGE->set_heading(get_string('pluginname', 'local_webcourse'));
 
 $endpoint = get_config('local_webcourse', 'endpoint');
 
-$response = file_get_contents($endpoint);
+$curl = new \curl();
+$options = [
+    'CURLOPT_RETURNTRANSFER' => true,
+    'CURLOPT_TIMEOUT' => 30,
+];
+$headers = [
+    'Content-Type: application/json',
+];
+$response = $curl->get($endpoint, [], $options + ['CURLOPT_HTTPHEADER' => $headers]);
 $coursesdata = json_decode($response, true);
 
 list($newcourses, $existingcourses, $existingcoursesjson) = local_webcourse_filter_existing_course($coursesdata);
@@ -77,7 +86,7 @@ if (optional_param('confirm', 0, PARAM_INT) === 1) {
                 );
 
                 $notfoundusers = merge_unique_notfoundusers($notfoundusers, $notfound);
-            } catch (Exception $e) {
+            } catch (moodle_exception $e) {
                 echo $OUTPUT->header();
                 echo html_writer::tag('p', get_string('coursecreationerror', 'local_webcourse') . ': ' . $e->getMessage());
                 echo $OUTPUT->footer();
@@ -111,7 +120,7 @@ if (optional_param('confirm', 0, PARAM_INT) === 1) {
             try {
                 $notfound = check_and_enrol($course, $participants);
                 $notfoundusers = merge_unique_notfoundusers($notfoundusers, $notfound);
-            } catch (Exception $e) {
+            } catch (moodle_exception $e) {
                 echo $OUTPUT->header();
                 echo html_writer::tag('p', get_string('coursecreationerror', 'local_webcourse') . ': ' . $e->getMessage());
                 echo $OUTPUT->footer();
